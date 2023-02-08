@@ -17,48 +17,83 @@ class Scraper:
         self.complaint_type = complaint_type
         self.start_page = start_page
         self.end_page = end_page
-        
+        self.rows = []
+
+
+    def change_page(self, brand, complaint=None):
+        if complaint is not None:
+            next_query = Scraper.__BASE_URL + complaint.find('section').find('h2').find('a').get('href')
+        else:
+            next_query = Scraper.__BASE_URL + '/' + brand.lower() + Scraper.__QUERY + str(self.page_number)
+
+        next_page = requests.get(next_query, headers=Scraper.__HEADERS)
+        return BeautifulSoup(next_page.content, 'html.parser')
+
+
+    def add_unsolved(self, brand, page_soup):
+        unsolved = page_soup.findAll('article', {'class': 'story-card complaint-card ga-v ga-c'})
+
+        for i in range(len(unsolved)):
+            complaint_soup = self.change_page(brand, complaint=unsolved[i])
+            complaint = complaint_soup.find('article', {'class': 'story-primary complaint-card'})
+
+            data = {
+                'brand':           brand,
+                'customer_name':   complaint.find('span', {'class': 'username'}).find('a').text,
+                'customer_link':   complaint.find('span', {'class': 'username'}).find('a').get('href'),
+                'date':            complaint.find('span', {'class': 'username'}).find('span', {'class': 'post-time'}).get('title'),
+                'rating':          len(complaint_soup.find('section', {'class': 'post-setting'}).findAll('span', {'class': 'dark-yellow icomoon-full-star'})),
+                'is_solved':       False,
+                'complaint_title': complaint.find('h1', {'class': 'complaint-title'}).text,
+                'complaint_text':  complaint.find('div', {'class': 'card-text'}).text
+            }
+
+            self.rows.append(data)
+    
+
+    def add_solved(self, brand, page_soup):
+        solved = page_soup.findAll('article', {'class': 'story-card complaint-card solved ga-v ga-c'})
+
+        for i in range(len(solved)):
+            complaint_soup = self.change_page(brand, complaint=solved[i])
+            complaint = complaint_soup.find('article', {'class': 'story-primary complaint-card'})
+
+            data = {
+                'brand':           brand,
+                'customer_name':   complaint.find('span', {'class': 'username'}).find('a').text,
+                'customer_link':   complaint.find('span', {'class': 'username'}).find('a').get('href'),
+                'date':            complaint.find('span', {'class': 'username'}).find('span', {'class': 'post-time'}).get('title'),
+                'rating':          len(complaint_soup.find('section', {'class': 'post-setting'}).findAll('span', {'class': 'dark-yellow icomoon-full-star'})),
+                'is_solved':       True,
+                'complaint_title': complaint.find('h1', {'class': 'complaint-title'}).text,
+                'complaint_text':  complaint.find('div', {'class': 'card-text'}).text
+            }
+
+            self.rows.append(data)
+
+
     def scrape_data(self):
+
+        self.exception_counter = 0
         
         for brand in self.brands:
-            page_number = self.start_page
-
-            rows = []
+            self.page_number = self.start_page
             
-            while page_number <= 2:
-                next_page = Scraper.__BASE_URL + '/' + brand.lower() + Scraper.__QUERY + str(self.start_page)
-                brand_page = requests.get(next_page, headers=Scraper.__HEADERS)
-                soup = BeautifulSoup(brand_page.content, 'html.parser')
+            while self.page_number <= 2:
+                next_page_soup = self.change_page(brand)
 
-                unsolved = soup.findAll('article', {'class': 'story-card complaint-card ga-v ga-c'})
+                try:
+                    if self.complaint_type == 'both':
+                        self.add_solved(brand, next_page_soup)
+                        self.add_unsolved(brand, next_page_soup)
+                    elif self.complaint_type == 'solved':
+                        self.add_solved(brand, next_page_soup)
+                    else:
+                        self.add_unsolved(brand, next_page_soup)
+                except Exception:
+                    self.exception_counter += 1
 
-                for i in range(len(unsolved)):
-
-                    try:
-                        complaint_link = Scraper.__BASE_URL + unsolved[i].find('section').find('h2').find('a').get('href')
-                        complaint_page = requests.get(complaint_link, headers=Scraper.__HEADERS)
-                        complaint_soup = BeautifulSoup(complaint_page.content, "html.parser")
-
-                        complaint = complaint_soup.find('article', {'class': 'story-primary complaint-card'})
-
-                        data = {
-                            'customer_name':   complaint.find('span', {'class': 'username'}).find('a').text,
-                            'customer_link':   complaint.find('span', {'class': 'username'}).find('a').get('href'),
-                            'date':            complaint.find('span', {'class': 'username'}).find('span', {'class': 'post-time'}).get('title'),
-                            'rating':          len(complaint_soup.find('section', {'class': 'post-setting'}).findAll('span', {'class': 'dark-yellow icomoon-full-star'})),
-                            'complaint_title': complaint.find('h1', {'class': 'complaint-title'}).text,
-                            'complaint_text':  complaint.find('div', {'class': 'card-text'}).text
-                        }
-
-                        rows.append(data)
-                        
-                    except Exception:
-                        #TODO
-                        pass
-
-                page_number += 1
-
-            
+                self.page_number += 1
 
 
     def print_info(self):
