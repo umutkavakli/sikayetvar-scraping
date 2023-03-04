@@ -1,6 +1,6 @@
 # Sikayetvar Scraping
 
-A scraping tool for customer complaints of specified brands. 
+A scraping tool for customer complaints of specified brands to use in NLP tasks.
 <hr>
 
 
