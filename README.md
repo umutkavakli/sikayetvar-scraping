@@ -22,7 +22,7 @@ python3 start.py [-h] [-t [TEST]] -b BRANDS [BRANDS ...] [-s START_PAGE] [-e END
 ## Parameters
 
 <b>-t, &nbsp;&nbsp;--test</b>: Test parameter to see if frequency is enough to pull data without rejected request.
-<b>-b, &nbsp;&nbsp;--brands</b>: Specified brands to scrape complaint data. It is required parameter and it takes at least one brand name. It can take list of brand names.
+<br><b>-b, &nbsp;&nbsp;--brands</b>: Specified brands to scrape complaint data. It is required parameter and it takes at least one brand name. It can take list of brand names.
 <br><b>-s, &nbsp;&nbsp;--start-page</b>: Start page. Default: 1.
 <br><b>-e, &nbsp;&nbsp;--end-page</b>: End page. Default: 10.
 <br><b>-o, &nbsp;&nbsp;--output-path</b>: Output path for saving data. Given dir1/dir2/file_name input created dir1 and dir2 directories (if they don't exist) and a file.
