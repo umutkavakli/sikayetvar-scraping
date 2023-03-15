@@ -5,7 +5,7 @@ from scraper import Scraper
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-t', '--test', nargs='?', const=100, type=int, required=False,
-                    help="Test parameter to see if frequency is enough to pull data without rejected request")
+                    help="Test parameter to see if frequency is enough to pull data without rejected request.")
 parser.add_argument('-b', '--brands', nargs='+', required='--test' not in sys.argv and '-t' not in sys.argv, 
                     help="Specified brands to scrape complaint data. It is required parameter and it takes at least one brand name. It can take list of brand names.")
 parser.add_argument('-s', '--start-page', type=int, default=1, 
@@ -19,7 +19,7 @@ parser.add_argument('-f', '--file-extension', choices=['csv', 'xlsx'], default='
 parser.add_argument('-i', '--info', action='store_true',
                     help="Prints information about scraping data for current brand every page.")
 parser.add_argument('--frequency', type=float, default=0.5,
-                    help='Frequency range for sending request, default=0.5 second')
+                    help='Frequency range for sending request, default=0.5 second.')
 
 args = parser.parse_args()
 
