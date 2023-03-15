@@ -15,13 +15,14 @@ class Scraper:
     __BASE_URL = 'https://www.sikayetvar.com'
     __QUERY = '?page='
 
-    def __init__(self, brands, start_page, end_page, info, file_extension, output_path):
+    def __init__(self, brands, start_page, end_page, info, file_extension, output_path, frequency):
         self.brands = brands
         self.start_page = start_page
         self.end_page = end_page
         self.info = info
         self.file_extension = file_extension
         self.output_path = output_path
+        self.frequency = frequency
         self.rows = []
 
     def change_page(self, brand, page_number):
@@ -65,7 +66,7 @@ class Scraper:
                 }
 
                 self.rows.append(data)
-                time.sleep(.5)
+                time.sleep(self.frequency)
             except Exception as exception:
                 self.exception_counter += 1
                 pass
@@ -98,8 +99,22 @@ class Scraper:
     def print_info(self, brand, page_number):
         print(f'For \"{brand}\" brand, page {page_number} is processing...')
         print(f'Current total number of complaints scraped: {len(self.rows)}\n')
-        
+    
+    def test_status(self, repeat):
+        success = 0
 
+        print(f'Frequency: {int(1/self.frequency)} requests per second\n')
+        for i in range(repeat):
+            response = requests.get(Scraper.__BASE_URL + '/sikayetvar', headers=Scraper.__HEADERS)
+            status = response.status_code
+
+            if status == 200:
+                success += 1
+            print(f'Request {i} --- Status: {status}')
+            time.sleep(self.frequency)
+
+        print(f'\nSuccess: {(success/repeat)*100:.0f}% in {repeat} times')
+        
     def save_data(self):
         """
         Saves scraped data to desired format (csv or excel) for output path.
